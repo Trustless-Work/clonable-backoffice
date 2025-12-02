@@ -6,6 +6,7 @@ import { InitializeEscrowDialog } from "@/components/tw-blocks/escrows/single-re
 import { InitializeEscrowDialog as InitializeMultiReleaseEscrowDialog } from "@/components/tw-blocks/escrows/multi-release/initialize-escrow/dialog/InitializeEscrow";
 import { WalletButton } from "@/components/tw-blocks/wallet-kit/WalletButtons";
 import Image from "next/image";
+import { EscrowsBySignerCards } from "@/components/tw-blocks/escrows/escrows-by-signer/cards/EscrowsCards";
 
 export default function Home() {
   return (
@@ -35,7 +36,7 @@ export default function Home() {
         </div>
 
         <Suspense fallback={null}>
-          <EscrowsByRoleCards />
+          <EscrowsBySignerCards />
         </Suspense>
       </main>
     </div>

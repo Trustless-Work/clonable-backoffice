@@ -11,7 +11,11 @@ import type {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Goal,
   Wallet,
@@ -31,6 +35,12 @@ import {
 import { EscrowDetailDialog } from "../details/EscrowDetailDialog";
 
 export const EscrowsByRoleCards = () => {
+  const [hasMounted, setHasMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   const {
     walletAddress,
     data,
@@ -109,6 +119,14 @@ export const EscrowsByRoleCards = () => {
   }
 
   const escrows: Escrow[] = data ?? [];
+
+  if (!hasMounted) {
+    return (
+      <div className="w-full py-8 flex items-center justify-center">
+        <Loader2 className="h-6 w-6 md:h-8 md:w-8 animate-spin text-primary mb-3" />
+      </div>
+    );
+  }
 
   const currentSort = sorting?.[0];
   const sortField =
