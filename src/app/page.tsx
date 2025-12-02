@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { EscrowsByRoleCards } from "@/components/tw-blocks/escrows/escrows-by-role/cards/EscrowsCards";
 import { InitializeEscrowDialog } from "@/components/tw-blocks/escrows/single-release/initialize-escrow/dialog/InitializeEscrow";
 import { InitializeEscrowDialog as InitializeMultiReleaseEscrowDialog } from "@/components/tw-blocks/escrows/multi-release/initialize-escrow/dialog/InitializeEscrow";
@@ -33,7 +34,9 @@ export default function Home() {
           </div>
         </div>
 
-        <EscrowsByRoleCards />
+        <Suspense fallback={null}>
+          <EscrowsByRoleCards />
+        </Suspense>
       </main>
     </div>
   );
