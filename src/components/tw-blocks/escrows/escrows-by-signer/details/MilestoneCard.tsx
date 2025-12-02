@@ -20,6 +20,9 @@ import { Badge } from "@/components/ui/badge";
 import { ChangeMilestoneStatusDialog } from "../../single-multi-release/change-milestone-status/dialog/ChangeMilestoneStatus";
 import { ApproveMilestoneButton } from "../../single-multi-release/approve-milestone/button/ApproveMilestone";
 import { formatCurrency } from "@/components/tw-blocks/helpers/format.helper";
+import { ReleaseMilestoneButton } from "../../multi-release/release-milestone/button/ReleaseMilestone";
+import { DisputeMilestoneButton } from "../../multi-release/dispute-milestone/button/DisputeMilestone";
+import { ResolveDisputeDialog } from "../../multi-release/resolve-dispute/dialog/ResolveDispute";
 
 interface MilestoneCardProps {
   milestone: SingleReleaseMilestone | MultiReleaseMilestone;
@@ -138,14 +141,12 @@ const MilestoneCardComponent = ({
       milestone.flags?.approved &&
       !milestone.flags?.released
     ) {
-      buttons
-        .push
-        // You can add the button here, using the button from the blocks. This button is conditional based on the milestone status and the user roles. Works only with multi-release escrows.
-        // <ReleaseMilestoneButton
-        //   key={`release-${milestoneIndex}`}
-        //   milestoneIndex={milestoneIndex}
-        // />
-        ();
+      buttons.push(
+        <ReleaseMilestoneButton
+          key={`release-${milestoneIndex}`}
+          milestoneIndex={milestoneIndex}
+        />
+      );
     }
 
     if (
@@ -156,14 +157,12 @@ const MilestoneCardComponent = ({
       !milestone.flags?.released &&
       !milestone.flags?.resolved
     ) {
-      buttons
-        .push
-        // You can add the button here, using the button from the blocks. This button is conditional based on the milestone status and the user roles. Works only with multi-release escrows.
-        // <DisputeMilestoneButton
-        //   key={`dispute-${milestoneIndex}`}
-        //   milestoneIndex={milestoneIndex}
-        // />
-        ();
+      buttons.push(
+        <DisputeMilestoneButton
+          key={`dispute-${milestoneIndex}`}
+          milestoneIndex={milestoneIndex}
+        />
+      );
     }
 
     if (
@@ -171,14 +170,12 @@ const MilestoneCardComponent = ({
       "flags" in milestone &&
       milestone.flags?.disputed
     ) {
-      buttons
-        .push
-        // You can add the button here, using the button from the blocks. This button is conditional based on the milestone status and the user roles. Works only with multi-release escrows.
-        // <ResolveDisputeDialog
-        //   key={`resolve-${milestoneIndex}`}
-        //   milestoneIndex={milestoneIndex}
-        // />
-        ();
+      buttons.push(
+        <ResolveDisputeDialog
+          key={`resolve-${milestoneIndex}`}
+          milestoneIndex={milestoneIndex}
+        />
+      );
     }
 
     return buttons;
