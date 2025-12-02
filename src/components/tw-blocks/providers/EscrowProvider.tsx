@@ -59,16 +59,20 @@ export const EscrowProvider = ({ children }: { children: ReactNode }) => {
   const [userRolesInEscrow, setUserRolesInEscrowState] = useState<string[]>([]);
 
   /**
-   * Get the selected escrow from the local storage
+   * Load saved wallet information from localStorage when the component mounts
+   * This ensures the wallet state persists across browser sessions
    */
   useEffect(() => {
     try {
       const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (stored) {
         const parsed: Escrow = JSON.parse(stored);
+        // This effect initializes state from localStorage once on mount.
+        // It is a controlled sync from an external store, so we allow setState here.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedEscrowState(parsed);
       }
-    } catch (_err) {
+    } catch {
       // ignore malformed localStorage content
     }
   }, []);
