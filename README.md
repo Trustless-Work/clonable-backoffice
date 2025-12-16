@@ -59,6 +59,10 @@ The Trustless Work Backoffice is an administrative console for managing the full
 
 Follow the steps below to get started with this project:
 
+## Video Tutorial
+
+[See Video](https://www.youtube.com/watch?v=9EuIe34JwS4)
+
 ## Summary
 
 1. Install dependencies.
@@ -66,6 +70,7 @@ Follow the steps below to get started with this project:
 3. Run the project!
 
 ## Steps
+
 1. Fork the repo.
 2. Clone the repo locally.
 3. Execute `npm i`.
