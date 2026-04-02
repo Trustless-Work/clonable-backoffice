@@ -9,6 +9,7 @@ import { EscrowProvider } from "@/components/tw-blocks/providers/EscrowProvider"
 import { EscrowDialogsProvider } from "@/components/tw-blocks/providers/EscrowDialogsProvider";
 import { EscrowAmountProvider } from "@/components/tw-blocks/providers/EscrowAmountProvider";
 import { Toaster } from "sonner";
+import { PollarWalletProvider } from "@/components/providers/pollar-provider";
 // Use these imports to wrap your application (<ReactQueryClientProvider>, <TrustlessWorkProvider>, <WalletProvider> y <EscrowProvider>)
 
 // Use these imports to wrap your application (<ReactQueryClientProvider>, <TrustlessWorkProvider>, <WalletProvider> y <EscrowProvider>)
@@ -38,21 +39,23 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased dark`}
       >
-        <ReactQueryClientProvider>
-          <TrustlessWorkProvider>
-            <WalletProvider>
-              <EscrowProvider>
-                <EscrowDialogsProvider>
-                  <EscrowAmountProvider>
-                    {children}
+        <PollarWalletProvider>
+          <ReactQueryClientProvider>
+            <TrustlessWorkProvider>
+              <WalletProvider>
+                <EscrowProvider>
+                  <EscrowDialogsProvider>
+                    <EscrowAmountProvider>
+                      {children}
 
-                    <Toaster />
-                  </EscrowAmountProvider>
-                </EscrowDialogsProvider>
-              </EscrowProvider>
-            </WalletProvider>
-          </TrustlessWorkProvider>
-        </ReactQueryClientProvider>
+                      <Toaster />
+                    </EscrowAmountProvider>
+                  </EscrowDialogsProvider>
+                </EscrowProvider>
+              </WalletProvider>
+            </TrustlessWorkProvider>
+          </ReactQueryClientProvider>
+        </PollarWalletProvider>
       </body>
     </html>
   );
