@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { ApproverEscrowsTable } from "@/components/tw-blocks/escrows/escrows-by-role/approver/ApproverEscrowsTable";
 import { WalletButton } from "@/components/tw-blocks/wallet-kit/WalletButtons";
 import { Info } from "lucide-react";
@@ -53,7 +54,9 @@ export default function ApproverWorkspace() {
         </div>
 
         {/* Escrows Table */}
-        <ApproverEscrowsTable />
+        <Suspense fallback={null}>
+          <ApproverEscrowsTable />
+        </Suspense>
       </main>
     </div>
   );

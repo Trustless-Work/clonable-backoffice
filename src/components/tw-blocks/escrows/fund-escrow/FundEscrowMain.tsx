@@ -102,7 +102,7 @@ export function FundEscrowMain({
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-green-800 mb-2">
-                  🎉 Escrow Fully Funded!
+                  Escrow Fully Funded!
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   This escrow has reached its funding goal. The funds are now secured and ready for release according to the escrow terms.

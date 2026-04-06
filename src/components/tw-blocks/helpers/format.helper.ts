@@ -1,12 +1,22 @@
 /**
  * Format the currency
  *
- * @param value - The value
- * @param currency - The currency
- * @returns The formatted currency
+ * Accepts `undefined`/`null` values for both amount and currency, gracefully
+ * falling back to 0 and empty string respectively. This ensures type safety
+ * across all call sites where values may be optional.
+ *
+ * @param value - The numeric value (or undefined/null)
+ * @param currency - The currency symbol/text (or undefined/null)
+ * @returns The formatted currency string
  */
-export const formatCurrency = (value: number, currency: string) => {
-  return `${currency} ${value.toFixed(2)}`;
+export const formatCurrency = (
+  value: number | undefined | null,
+  currency?: string | null
+) => {
+  const v = value ?? 0;
+  // ensure value is numeric before calling toFixed
+  const n = typeof v === "number" && !isNaN(v) ? v : 0;
+  return `${currency ? currency + " " : ""}${n.toFixed(2)}`;
 };
 
 /**

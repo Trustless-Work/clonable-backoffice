@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useLoadEscrow } from "./useLoadEscrow";
 import { Loader2, Search } from "lucide-react";
 
-interface LoadEscrowFormProps {
+export interface LoadEscrowFormProps {
   onSuccess?: () => void;
 }
 

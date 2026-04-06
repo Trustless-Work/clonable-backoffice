@@ -9,6 +9,7 @@ import {
   Wallet,
   Settings,
   Briefcase,
+  BarChart3,
 } from "lucide-react";
 import {
   GetEscrowsFromIndexerResponse as Escrow,
@@ -20,13 +21,15 @@ import { UpdateEscrowDialog as UpdateMultiReleaseEscrowDialog } from "../../mult
 import { DisputeEscrowButton } from "../../single-release/dispute-escrow/button/DisputeEscrow";
 import { ResolveDisputeDialog } from "../../single-release/resolve-dispute/dialog/ResolveDispute";
 import { ReleaseEscrowButton } from "../../single-release/release-escrow/button/ReleaseEscrow";
-import { WithdrawRemainingFundsDialog } from "../../multi-release/withdraw-remaining-funds/dialog/WithdrawRemainingFunds";
+import { Button } from "@/components/ui/button";
 import { WalletValidationGate } from "@/components/tw-blocks/wallet-kit/WalletValidationGate";
+import { WithdrawRemainingFundsDialog } from "../../multi-release/withdraw-remaining-funds/dialog/WithdrawRemainingFunds";
 
 interface ActionsProps {
   selectedEscrow: Escrow;
   userRolesInEscrow: string[];
   areAllMilestonesApproved: boolean;
+  onViewProgress?: () => void;
 }
 
 export const roleActions: {
@@ -87,12 +90,14 @@ export const actionIcons: Record<string, React.ReactNode> = {
   resolveDispute: <Scale className="h-6 w-6 text-primary/60" />,
   releasePayment: <Unlock className="h-6 w-6 text-primary/60" />,
   editEscrow: <Edit className="h-6 w-6 text-primary/60" />,
+  viewProgress: <BarChart3 className="h-6 w-6 text-primary/60" />,
 };
 
 export const Actions = ({
   selectedEscrow,
   userRolesInEscrow,
   areAllMilestonesApproved,
+  onViewProgress,
 }: ActionsProps) => {
   const shouldShowEditButton =
     userRolesInEscrow.includes("platformAddress") &&
@@ -171,6 +176,18 @@ export const Actions = ({
             {/* Multi-release: Withdraw Remaining Funds */}
             {shouldShowWithdrawRemaining && <WithdrawRemainingFundsDialog />}
           </div>
+        )}
+
+        {/* View Progress Button */}
+        {onViewProgress && (
+          <Button
+            variant="outline"
+            onClick={onViewProgress}
+            className="flex items-center gap-2 w-full justify-start"
+          >
+            {actionIcons.viewProgress}
+            View Progress
+          </Button>
         )}
 
         <FundEscrowDialog />

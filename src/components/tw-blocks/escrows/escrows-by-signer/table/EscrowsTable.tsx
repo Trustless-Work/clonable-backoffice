@@ -28,6 +28,7 @@ import { useEscrowDialogs } from "@/components/tw-blocks/providers/EscrowDialogs
 import { useEscrowContext } from "@/components/tw-blocks/providers/EscrowProvider";
 import { EscrowDetailDialog } from "../details/EscrowDetailDialog";
 import { formatTimestamp } from "../../../helpers/format.helper";
+import { EscrowMilestoneProgressBar } from "../../indicators/milestone-progress/bar/EscrowMilestoneProgress";
 
 export const EscrowsBySignerTable = () => {
   const {
@@ -121,6 +122,17 @@ export const EscrowsBySignerTable = () => {
             0
           );
         },
+      },
+      {
+        header: "Progress",
+        id: "progress",
+        enableSorting: false,
+        meta: { className: "w-24" },
+        cell: () => (
+          <div className="w-full max-w-24 text-muted-foreground align-center flex justify-center">
+            —
+          </div>
+        ),
       },
       {
         header: "Balance",

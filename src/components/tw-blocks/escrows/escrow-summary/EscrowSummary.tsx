@@ -8,6 +8,7 @@ import { GetEscrowsFromIndexerResponse as Escrow, MultiReleaseMilestone } from "
 import { formatCurrency } from "@/components/tw-blocks/helpers/format.helper";
 import { useCopy } from "@/components/tw-blocks/helpers/useCopy";
 import { Copy } from "lucide-react";
+import { EscrowMilestoneProgressBar } from "@/components/tw-blocks/escrows/indicators/milestone-progress/bar/EscrowMilestoneProgress";
 
 interface EscrowSummaryProps {
   escrow: Escrow;
@@ -79,6 +80,17 @@ export const EscrowSummary = ({ escrow }: EscrowSummaryProps) => {
                 )
               : formatCurrency(escrow.amount ?? 0, escrow.trustline?.symbol || "")}
           </p>
+        </div>
+        {/* milestone progress summary - support both single and multi-release */}
+        <div className="mt-4">
+          <span className="text-sm font-medium text-muted-foreground block mb-2">
+            Approval Progress
+          </span>
+          <EscrowMilestoneProgressBar
+            escrow={escrow}
+            mode="approved"
+            showText={false}
+          />
         </div>
       </CardContent>
     </Card>

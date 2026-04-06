@@ -39,6 +39,7 @@ interface GeneralInformationProps {
   userRolesInEscrow: string[];
   dialogStates: DialogStates;
   areAllMilestonesApproved: boolean;
+  onViewProgress?: () => void;
 }
 
 export const GeneralInformation = ({
@@ -46,6 +47,7 @@ export const GeneralInformation = ({
   userRolesInEscrow,
   dialogStates,
   areAllMilestonesApproved,
+  onViewProgress,
 }: GeneralInformationProps) => {
   const { trustlessWorkAmount, receiverAmount, platformFeeAmount } =
     useEscrowAmountContext();

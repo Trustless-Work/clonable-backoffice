@@ -92,9 +92,11 @@ export default function ServiceProviderWorkspace() {
                 </div>
 
                 {/* Escrows Table */}
-                <Suspense fallback={null}>
-                    <ServiceProviderTableNoSSR />
-                </Suspense>
+                <div id="escrows-section" className="w-full">
+                    <Suspense fallback={null}>
+                        <ServiceProviderTableNoSSR />
+                    </Suspense>
+                </div>
             </main>
         </div>
     );

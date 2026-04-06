@@ -133,6 +133,17 @@ export const EscrowsByRoleTable = () => {
         },
       },
       {
+        header: "Progress",
+        id: "progress",
+        enableSorting: false,
+        meta: { className: "w-24" },
+        cell: ({ row }) => (
+          <div className="w-full max-w-24">
+            {/* Progress bar removed as requested */}
+          </div>
+        ),
+      },
+      {
         header: "Balance",
         accessorKey: "balance",
         enableSorting: false,

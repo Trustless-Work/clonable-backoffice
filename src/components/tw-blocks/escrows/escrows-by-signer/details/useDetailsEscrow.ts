@@ -101,7 +101,7 @@ const useEscrowDetailDialog = ({
           setUserRolesInEscrow(roleData);
         }
       } catch (error) {
-        console.error("[EscrowDetailDialog] Error fetching roles:", error);
+        // Silently handle role fetch errors
       } finally {
         fetchingRef.current = false;
       }

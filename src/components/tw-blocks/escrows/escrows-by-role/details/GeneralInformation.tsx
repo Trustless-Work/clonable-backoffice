@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipTrigger,
@@ -21,6 +22,7 @@ import {
   Copy,
   BriefcaseBusiness,
   BookOpen,
+  BarChart3,
 } from "lucide-react";
 import { Actions, roleActions } from "./Actions";
 import type { DialogStates } from "@/components/tw-blocks/providers/EscrowDialogsProvider";
@@ -39,6 +41,10 @@ interface GeneralInformationProps {
   userRolesInEscrow: string[];
   dialogStates: DialogStates;
   areAllMilestonesApproved: boolean;
+  // onViewProgress is still accepted so callers can provide it to
+  // Actions, but the header button has been removed to avoid
+  // duplication; the action panel now owns the single jump button.
+  onViewProgress?: () => void;
 }
 
 export const GeneralInformation = ({
@@ -46,6 +52,7 @@ export const GeneralInformation = ({
   userRolesInEscrow,
   dialogStates,
   areAllMilestonesApproved,
+  onViewProgress,
 }: GeneralInformationProps) => {
   const { trustlessWorkAmount, receiverAmount, platformFeeAmount } =
     useEscrowAmountContext();
@@ -63,6 +70,12 @@ export const GeneralInformation = ({
       );
     }
   }, [selectedEscrow]);
+
+  // note: the progress button previously rendered above the
+  // information cards has been removed to eliminate redundancy.  the
+  // same `onViewProgress` callback is still forwarded to the
+  // Actions component further down, which now contains the sole
+  // visible progress jump button.
 
   return (
     <div className="space-y-6 h-full">
@@ -120,6 +133,7 @@ export const GeneralInformation = ({
             selectedEscrow={selectedEscrow}
             userRolesInEscrow={userRolesInEscrow}
             areAllMilestonesApproved={areAllMilestonesApproved}
+            onViewProgress={onViewProgress}
           />
         </div>
       </div>

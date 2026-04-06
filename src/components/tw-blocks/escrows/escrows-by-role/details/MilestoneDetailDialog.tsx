@@ -113,8 +113,7 @@ export const MilestoneDetailDialog = ({
     try {
       new URL(url);
       return true;
-    } catch (error) {
-      console.error(error);
+    } catch {
       return false;
     }
   };

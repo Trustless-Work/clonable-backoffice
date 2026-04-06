@@ -28,6 +28,7 @@ import { useEscrowDialogs } from "@/components/tw-blocks/providers/EscrowDialogs
 import { useEscrowContext } from "@/components/tw-blocks/providers/EscrowProvider";
 import { useEscrowsByApprover } from "../useEscrowsByApprover";
 import { formatTimestamp } from "../../../helpers/format.helper";
+import { EscrowMilestoneProgressBar } from "../../indicators/milestone-progress/bar/EscrowMilestoneProgress";
 
 /**
  * Table component specifically for the Approver Workspace
@@ -125,6 +126,22 @@ export const ApproverEscrowsTable = () => {
             0
           );
         },
+      },
+      {
+        header: "Progress",
+        id: "progress",
+        enableSorting: false,
+        meta: { className: "w-32" },
+        cell: ({ row }) => (
+          <div className="w-full max-w-32">
+            <EscrowMilestoneProgressBar
+              escrow={row.original}
+              mode="approved"
+              showText={false}
+              className="text-xs"
+            />
+          </div>
+        ),
       },
       {
         header: "Balance",
@@ -421,6 +438,8 @@ export const ApproverEscrowsTable = () => {
           isDialogOpen={dialogStates.second.isOpen}
           setIsDialogOpen={dialogStates.second.setIsOpen}
           setSelectedEscrow={setSelectedEscrow}
+          // approver users typically want to see progress right away
+          initialTab="progress"
         />
       ) : null}
     </>

@@ -6,6 +6,10 @@ import {
   MultiReleaseMilestone,
   SingleReleaseMilestone,
 } from "@trustless-work/escrow";
+import {
+  EscrowMilestoneProgressBar,
+  useEscrowMilestoneProgress,
+} from "@/components/tw-blocks/escrows/indicators/milestone-progress";
 import { MilestoneCard } from "./MilestoneCard";
 import { MilestoneDetailDialog } from "./MilestoneDetailDialog";
 
@@ -42,9 +46,35 @@ export const Milestones = ({
     []
   );
 
+  const approvedProgress = useEscrowMilestoneProgress(selectedEscrow, "approved");
+  const releasedProgress = useEscrowMilestoneProgress(selectedEscrow, "released");
+
   return (
     <div className="flex w-full">
       <div className="flex flex-col gap-6 w-full">
+        {/* progress bars summary for selected escrow */}
+        <div className="space-y-4">
+          <h3 className="font-semibold">Milestone Progress</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <span className="text-sm font-medium block mb-2">Approved</span>
+              <EscrowMilestoneProgressBar
+                escrow={selectedEscrow}
+                mode="approved"
+                showText={true}
+              />
+            </div>
+            <div>
+              <span className="text-sm font-medium block mb-2">Released</span>
+              <EscrowMilestoneProgressBar
+                escrow={selectedEscrow}
+                mode="released"
+                showText={true}
+              />
+            </div>
+          </div>
+        </div>
+
         <div className="flex w-full justify-between items-center">
           <label
             htmlFor="milestones"

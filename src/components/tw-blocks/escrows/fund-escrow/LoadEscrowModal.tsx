@@ -3,10 +3,11 @@
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import type { LoadEscrowFormProps } from "@/components/tw-blocks/escrows/load-escrow/LoadEscrowForm";
 
-const LoadEscrowFormNoSSR = dynamic(
+const LoadEscrowFormNoSSR = dynamic<LoadEscrowFormProps>(
   () =>
-    import("@/components/tw-blocks/escrows/load-escrow/form/LoadEscrow").then(
+    import("@/components/tw-blocks/escrows/load-escrow/LoadEscrowForm").then(
       (m) => m.LoadEscrowForm,
     ),
   {

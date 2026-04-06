@@ -9,6 +9,7 @@ import {
   Wallet,
   Settings,
   Briefcase,
+  BarChart3,
 } from "lucide-react";
 import {
   GetEscrowsFromIndexerResponse as Escrow,
@@ -27,6 +28,7 @@ interface ActionsProps {
   selectedEscrow: Escrow;
   userRolesInEscrow: string[];
   areAllMilestonesApproved: boolean;
+  onViewProgress?: () => void;
 }
 
 export const roleActions: {
@@ -87,6 +89,7 @@ export const actionIcons: Record<string, React.ReactNode> = {
   resolveDispute: <Scale className="h-6 w-6 text-primary/60" />,
   releasePayment: <Unlock className="h-6 w-6 text-primary/60" />,
   editEscrow: <Edit className="h-6 w-6 text-primary/60" />,
+  viewProgress: <BarChart3 className="h-6 w-6 text-primary/60" />,
 };
 
 export const Actions = ({

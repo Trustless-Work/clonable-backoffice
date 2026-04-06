@@ -34,6 +34,7 @@ import { useEscrowDialogs } from "@/components/tw-blocks/providers/EscrowDialogs
 import { useEscrowContext } from "@/components/tw-blocks/providers/EscrowProvider";
 import { useServiceProviderEscrows } from "./useServiceProviderEscrows";
 import { formatTimestamp } from "../../helpers/format.helper";
+import { EscrowMilestoneProgressBar } from "../indicators/milestone-progress/bar/EscrowMilestoneProgress";
 
 /**
  * Service Provider Table Component
@@ -135,6 +136,22 @@ export const ServiceProviderTable = () => {
                         0
                     );
                 },
+            },
+            {
+                header: "Progress",
+                id: "progress",
+                enableSorting: false,
+                meta: { className: "w-24" },
+                cell: ({ row }) => (
+                    <div className="w-full max-w-24">
+                        <EscrowMilestoneProgressBar
+                            escrow={row.original}
+                            mode="approved"
+                            showText={false}
+                            className="text-xs"
+                        />
+                    </div>
+                ),
             },
             {
                 header: "Balance",
