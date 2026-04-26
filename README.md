@@ -116,3 +116,11 @@ The wallets are required to interact with the platform.\
 ## **Thanks to all the contributors who have made this project possible!**
 
 [![Contributors](https://contrib.rocks/image?repo=Trustless-Work/dApp-Trustless-Work)](https://github.com/Trustless-Work/dApp-Trustless-Work/graphs/contributors)
+
+## 💰 Bounty Contribution
+
+- **Task:** ROZO Integration — Fund Trustless Work Escrows From Base USDC
+- **Reward:** $3000
+- **Source:** GitHub-Paid
+- **Date:** 2026-04-27
+
