@@ -34,6 +34,10 @@ yarn-error.log*
 .env*
 !.env.example
 
+# Local memory files (NEVER commit to GitHub)
+CLAUDE.md
+memory/
+
 # vercel
 .vercel
 

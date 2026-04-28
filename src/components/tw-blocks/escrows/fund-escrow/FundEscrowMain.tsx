@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/components/tw-blocks/helpers/format.helper";
 import { CheckCircle, Info } from "lucide-react";
 import { GetEscrowsFromIndexerResponse, MultiReleaseMilestone } from "@trustless-work/escrow/types";
+import { FundingMethodSelector } from "./FundingMethodSelector";
 
 const BalanceProgressBarNoSSR = dynamic(
   () =>
@@ -136,6 +137,23 @@ export function FundEscrowMain({
           )}
         </CardContent>
       </Card>
+
+      {!isFullyFunded && (
+        <Card className="border-border/60 shadow-sm">
+          <CardHeader className="pb-4 border-b border-border/40">
+            <CardTitle className="text-base font-semibold">
+              Funding Methods
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <FundingMethodSelector
+              contractId={currentEscrow.contractId || ""}
+              escrowPublicKey={currentEscrow.contractId || ""}
+              isMultiRelease={isMultiRelease}
+            />
+          </CardContent>
+      </Card>
+      )}
 
       {isMultiRelease && currentEscrow.milestones && (
         <Card className="border-border/60 shadow-sm">
