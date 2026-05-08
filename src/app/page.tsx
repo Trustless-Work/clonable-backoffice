@@ -21,7 +21,7 @@ const EscrowsBySignerCardsNoSSR = dynamic(
 );
 
 import Link from "next/link";
-import { Briefcase } from "lucide-react";
+import { Briefcase, Sparkles } from "lucide-react";
 
 export default function Home() {
   return (
@@ -65,6 +65,23 @@ export default function Home() {
                     Click this card to enter the workspace, manage your escrows, and
                     view your milestone progress bars.
                   </p>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        {/* subtle entry to the Pollar adapter demo (issue #28) */}
+        <div className="w-full max-w-lg">
+          <Link href="/pollar" className="block">
+            <div className="p-3 bg-muted/20 border border-border/40 rounded-md hover:bg-muted/40 transition-colors text-sm">
+              <div className="flex items-center gap-3">
+                <Sparkles className="h-4 w-4 text-muted-foreground" />
+                <div className="flex-1">
+                  <span className="font-medium">Try Pollar mode</span>
+                  <span className="text-muted-foreground ml-2">
+                    — sign Trustless Work XDRs via Pollar (demo)
+                  </span>
                 </div>
               </div>
             </div>

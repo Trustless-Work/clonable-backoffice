@@ -12,6 +12,8 @@
     "@creit-tech/stellar-wallets-kit": "npm:@jsr/creit-tech__stellar-wallets-kit@^2.0.0-beta.6",
     "@hookform/resolvers": "^3.10.0",
     "@noble/curves": "^2.0.1",
+    "@pollar/core": "^0.6.0",
+    "@pollar/react": "^0.6.0",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-checkbox": "^1.3.3",
     "@radix-ui/react-dialog": "^1.1.15",
