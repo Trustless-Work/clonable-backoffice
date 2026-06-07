@@ -16,16 +16,15 @@ import { toast } from "sonner";
 
 // NOTE: You must set these in your .env.local
 const CROSSMINT_API_KEY = process.env.NEXT_PUBLIC_CROSSMINT_API_KEY || "";
-const HAS_VALID_CROSSMINT_KEY =
-  CROSSMINT_API_KEY.startsWith("ck") || CROSSMINT_API_KEY.startsWith("sk");
+const HAS_VALID_CROSSMINT_KEY = CROSSMINT_API_KEY.startsWith("ck_");
 
 const USDC_TESTNET_TRUSTLINE = {
   address: "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
   symbol: "USDC",
 };
 
-// Placeholder Factory ID for PoC - Trustless Work deployment contract
-const TW_FACTORY_CONTRACT_ID = "CAE5F6..."; // Replace with real Factory ID if known
+// Configurable Factory ID for PoC - Trustless Work deployment contract
+const TW_FACTORY_CONTRACT_ID = process.env.NEXT_PUBLIC_TW_FACTORY_CONTRACT_ID || "";
 
 function PocContent() {
   const { wallet, status } = useWallet();
@@ -36,6 +35,15 @@ function PocContent() {
   const handlePocDeploy = async () => {
     if (!wallet || !wallet.address) {
       toast.error("Connect your Crossmint wallet first");
+      return;
+    }
+
+    // Runtime validation for Factory ID
+    if (!TW_FACTORY_CONTRACT_ID || TW_FACTORY_CONTRACT_ID === "CAE5F6..." || !TW_FACTORY_CONTRACT_ID.startsWith("C")) {
+      toast.error("Invalid Factory Contract ID", {
+        description: "Please set NEXT_PUBLIC_TW_FACTORY_CONTRACT_ID to a valid Soroban Contract ID."
+      });
+      console.error("[PoC] Missing or invalid TW_FACTORY_CONTRACT_ID:", TW_FACTORY_CONTRACT_ID);
       return;
     }
 

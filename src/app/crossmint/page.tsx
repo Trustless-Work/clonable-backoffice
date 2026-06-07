@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CrossmintMyEscrowsTab } from "@/components/crossmint-demo/CrossmintMyEscrowsTab";
+import { isValidWallet } from "@/components/tw-blocks/wallet-kit/validators";
 
 const USDC_TESTNET_TRUSTLINE = {
   address: "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
@@ -53,8 +54,14 @@ const USDC_TESTNET_TRUSTLINE = {
 };
 
 const CROSSMINT_API_KEY = process.env.NEXT_PUBLIC_CROSSMINT_API_KEY || "";
-const HAS_VALID_CROSSMINT_KEY =
-  CROSSMINT_API_KEY.startsWith("ck") || CROSSMINT_API_KEY.startsWith("sk");
+const HAS_VALID_CROSSMINT_KEY = CROSSMINT_API_KEY.startsWith("ck_");
+
+interface CrossmintWalletDebug {
+  address: string;
+  publicKey?: string;
+  owner?: string;
+  signer?: unknown;
+}
 
 function FieldLabel({
   htmlFor,
@@ -107,19 +114,20 @@ function CrossmintDemoPageContent() {
 
   // Debug logging for wallet information
   React.useEffect(() => {
-    if (crossmintStatus === "loaded") {
+    if (crossmintStatus === "loaded" && crossmintWallet) {
+      const debugWallet = crossmintWallet as unknown as CrossmintWalletDebug;
       console.log("[Crossmint] Wallet Loaded:", {
-        address: crossmintWallet?.address,
-        publicKey: (crossmintWallet as any)?.publicKey,
-        owner: (crossmintWallet as any)?.owner,
-        signer: (crossmintWallet as any)?.signer,
+        address: debugWallet.address,
+        publicKey: debugWallet.publicKey,
+        owner: debugWallet.owner,
+        signer: debugWallet.signer,
         fullWallet: crossmintWallet,
         status: crossmintStatus,
         config: {
           chain: "stellar",
           type: "mpc",
-          recovery: { type: "email" }
-        }
+          recovery: { type: "email" },
+        },
       });
     }
     setMode("crossmint");
@@ -144,10 +152,7 @@ function CrossmintDemoPageContent() {
 
     // Basic Stellar address validation
     // G... = Public Key, C... = Contract ID (Smart Wallet)
-    const isValidStellarAddress = (addr: string) =>
-      (addr.startsWith("G") || addr.startsWith("C")) && addr.length === 56;
-
-    if (!isValidStellarAddress(activeWalletAddress)) {
+    if (!isValidWallet(activeWalletAddress, { allowSmartWallet: true })) {
       console.error(
         "[Crossmint] Invalid Stellar address:",
         activeWalletAddress,
@@ -175,8 +180,14 @@ function CrossmintDemoPageContent() {
     const displayTitle = title || "Crossmint Escrow";
     const displayDescription =
       description || "Escrow created via the executor abstraction demo.";
-    const numericAmount = Number(amount) || 10;
-    const numericPlatformFee = Number(platformFee) || 5;
+    
+    // Preserve zero values
+    const vAmount = Number(amount);
+    const numericAmount = Number.isNaN(vAmount) ? 10 : vAmount;
+    
+    const vFee = Number(platformFee);
+    const numericPlatformFee = Number.isNaN(vFee) ? 5 : vFee;
+    
     const displayMilestone =
       milestoneDescription || "Complete the first deliverable";
 

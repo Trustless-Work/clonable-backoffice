@@ -76,12 +76,15 @@ export function CrossmintMyEscrowsTab({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEscrows.map((escrow) => (
-            <CrossmintEscrowCard
-              key={escrow.contractId}
-              escrow={escrow}
-            />
-          ))}
+          {filteredEscrows.map((escrow, idx) => {
+            const stableKey = escrow.contractId || (escrow as any).id || `escrow-${idx}-${escrow.createdAt}`;
+            return (
+              <CrossmintEscrowCard
+                key={stableKey}
+                escrow={escrow}
+              />
+            );
+          })}
         </div>
       )}
     </div>

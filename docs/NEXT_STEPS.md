@@ -6,63 +6,69 @@ To complete the validation of Issue #31 (Crossmint × Trustless Work Integration
 
 ### 1. Configure Crossmint API Key
 
-- Obtain a valid Crossmint publishable API key (starting with "ck*" or "sk*")
-- Add it to `.env.local`: `NEXT_PUBLIC_CROSSMINT_API_KEY="your_key_here"`
+- Obtain a valid Crossmint **publishable** API key (starting with "ck*")
+- Add it to `.env.local`: `NEXT_PUBLIC_CROSSMINT_API_KEY="ck_staging_..."`
 - Restart the development server
 
 ### 2. Runtime Validation Checklist
 
-Execute the following tests to validate each escrow lifecycle flow against acceptance criteria:
+Execute the following tests to validate each escrow lifecycle flow. Note that until the Trustless Work API supports Soroban Contract IDs (`C...` addresses), terminal success is currently blocked.
 
 #### Deploy Escrow Validation
 
-1. Navigate to `/crossmint` route
-2. Connect wallet using email/social login
-3. Complete and submit the escrow deployment form
-4. Verify:
-   - Success toast notification appears
-   - Transaction hash is displayed and copied to clipboard
-   - Hash links to Stellar testnet explorer (https://stellar.expert/explorer/testnet/tx/{hash})
-   - Transaction confirms on Stellar testnet within 30 seconds
-   - Escrow appears in "My Escrows" tab with correct details
+**Current Expected Failure Behavior:**
+1. Navigate to `/crossmint` route.
+2. Connect wallet using email/social login.
+3. Observe the wallet address starts with `C...`.
+4. Submit the escrow deployment form.
+5. **Verify Failure**:
+   - A toast notification appears: "Platform Mismatch Detected".
+   - Console shows: `invalid version byte. expected 48, got 16`.
+   - This confirms the system correctly identifies the address format blocker.
+
+**Future Success Criteria (Post-API Fix):**
+1. Submit the escrow deployment form.
+2. Verify:
+   - Success toast notification appears.
+   - Transaction hash is displayed and copied to clipboard.
+   - Hash links to Stellar testnet explorer.
+   - Escrow appears in "My Escrows" tab.
 
 #### Update Milestone Status Validation
 
-1. Deploy an escrow (as above)
-2. Navigate to the escrow detail page
-3. Click "Update Escrow" button
-4. Modify escrow details (title, description, etc.) and submit
-5. Verify:
-   - Success toast notification appears
-   - Transaction hash is displayed
-   - Hash links to Stellar testnet explorer
-   - Transaction confirms on Stellar testnet
-   - Escrow details are updated in UI and indexer
+**Current Expected Failure Behavior:**
+1. Since Deployment is blocked, this action cannot be tested via the standard flow.
+2. If manually triggered with a `C...` address, observe the `400 invalid version byte` rejection.
+
+**Future Success Criteria (Post-API Fix):**
+1. Modify escrow details and submit.
+2. Verify:
+   - Success toast notification appears.
+   - Transaction hash is displayed.
+   - UI reflects updated state.
 
 #### Approve Milestone Validation
 
-1. Deploy an escrow with at least one milestone
-2. Navigate to the escrow detail page
-3. Click "Approve Milestone" button for a pending milestone
-4. Verify:
-   - Success toast notification appears
-   - Transaction hash is displayed
-   - Hash links to Stellar testnet explorer
-   - Transaction confirms on Stellar testnet
-   - Milestone status changes to "approved" in UI
+**Current Expected Failure Behavior:**
+1. Blocked by Deployment. Observe rejection if manually attempted with `C...` address.
+
+**Future Success Criteria (Post-API Fix):**
+1. Click "Approve Milestone".
+2. Verify:
+   - Success toast notification appears.
+   - Milestone status changes to "approved" in UI.
 
 #### Release Funds Validation
 
-1. Deploy and fund an escrow with approved milestones
-2. Navigate to the escrow detail page
-3. Click "Release Funds" button
-4. Verify:
-   - Success toast notification appears
-   - Transaction hash is displayed
-   - Hash links to Stellar testnet explorer
-   - Transaction confirms on Stellar testnet
-   - Funds are transferred to service provider's wallet
-   - Escrow status updates appropriately
+**Current Expected Failure Behavior:**
+1. Blocked by Deployment. Observe rejection if manually attempted with `C...` address.
+
+**Future Success Criteria (Post-API Fix):**
+1. Click "Release Funds".
+2. Verify:
+   - Success toast notification appears.
+   - Funds are transferred on-chain.
+   - Escrow status updates.
 
 ### 3. Evidence Collection
 

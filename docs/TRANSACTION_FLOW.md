@@ -46,9 +46,10 @@ Once the transaction is confirmed on-chain, Crossmint returns the transaction ha
 - Triggers the Trustless Work indexer to sync the new state using the hash.
 - Refreshes the local UI to reflect the updated escrow status.
 
-## Supported Lifecycle Actions
-The Crossmint execution flow is verified for:
-- **Deploy Escrow**: Using the Factory Contract ID as the target.
-- **Milestone Updates**: Marking work as complete.
-- **Approvals**: Client-side approval of deliverables.
-- **Fund Releases**: Final transfer of assets to the service provider.
+## Current Status of Transaction Flow
+The Crossmint execution flow is planned and supported by implementation for the following actions, though terminal success is currently blocked by the "C vs G" address mismatch on the Trustless Work API:
+
+- **Deploy Escrow**: Tested (failing with `invalid version byte`).
+- **Milestone Updates**: Untested (blocked by deployment).
+- **Approvals**: Untested (blocked by deployment).
+- **Fund Releases**: Untested (blocked by deployment).

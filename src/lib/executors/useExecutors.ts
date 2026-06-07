@@ -33,6 +33,10 @@ export function useStellarWalletKitExecutor(): TransactionExecutor {
           address: walletAddress,
         });
 
+        if (!signedTxXdr) {
+          throw new Error("signTransaction produced an empty XDR. User may have cancelled or signing failed.");
+        }
+
         const response = await sendTransaction(signedTxXdr);
         const hash = (response as { hash?: string }).hash || "";
 

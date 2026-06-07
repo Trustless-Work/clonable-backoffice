@@ -13,8 +13,7 @@ import { ExecutorProvider } from "./ExecutorProvider";
 
 const CROSSMINT_API_KEY =
   process.env.NEXT_PUBLIC_CROSSMINT_API_KEY || "";
-const HAS_VALID_CROSSMINT_KEY =
-  CROSSMINT_API_KEY.startsWith("ck") || CROSSMINT_API_KEY.startsWith("sk");
+const HAS_VALID_CROSSMINT_KEY = CROSSMINT_API_KEY.startsWith("ck_");
 
 interface TrustlessWorkCrossmintBridgeProps {
   children: React.ReactNode;
@@ -41,7 +40,7 @@ export function TrustlessWorkCrossmintBridge({
   );
 
   return (
-    <ExecutorProvider crossmintEnabled={HAS_VALID_CROSSMINT_KEY}>
+    <>
       {HAS_VALID_CROSSMINT_KEY ? (
         <CrossmintSdkProvider apiKey={CROSSMINT_API_KEY}>
           <CrossmintAuthProvider loginMethods={["email", "google"]}>
@@ -55,7 +54,9 @@ export function TrustlessWorkCrossmintBridge({
               }}
             >
               <CrossmintProvider adapters={{ escrow }}>
-                {children}
+                <ExecutorProvider crossmintEnabled={true}>
+                  {children}
+                </ExecutorProvider>
               </CrossmintProvider>
             </CrossmintWalletProvider>
           </CrossmintAuthProvider>
@@ -63,6 +64,6 @@ export function TrustlessWorkCrossmintBridge({
       ) : (
         children
       )}
-    </ExecutorProvider>
+    </>
   );
 }

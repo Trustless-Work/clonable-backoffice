@@ -200,17 +200,34 @@ export const useEscrowsMutations = () => {
           explorerLink: executionResult.explorerLink,
           transactionStatus: executionResult.status,
         };
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("[useEscrowsMutations] Full error object:", error);
-        if (error.response) {
-          console.error("[useEscrowsMutations] Deploy failed with status", error.response.status, ":", JSON.stringify(error.response.data, null, 2));
-          const message = error.response.data?.message || error.response.data?.error || JSON.stringify(error.response.data) || "Deploy failed";
-          
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "response" in error &&
+          typeof (error as any).response === "object"
+        ) {
+          const axiosError = error as {
+            response: { status: number; data?: any };
+          };
+          console.error(
+            "[useEscrowsMutations] Deploy failed with status",
+            axiosError.response.status,
+            ":",
+            JSON.stringify(axiosError.response.data, null, 2),
+          );
+          const message =
+            axiosError.response.data?.message ||
+            axiosError.response.data?.error ||
+            JSON.stringify(axiosError.response.data) ||
+            "Deploy failed";
+
           // Show a descriptive toast for API errors
-          toast.error(`API Error (${error.response.status}): ${message}`, {
+          toast.error(`API Error (${axiosError.response.status}): ${message}`, {
             duration: 5000,
           });
-          
+
           throw new Error(`API Error: ${message}`);
         }
         throw error;
@@ -275,11 +292,22 @@ export const useEscrowsMutations = () => {
           explorerLink: executionResult.explorerLink,
           transactionStatus: executionResult.status,
         };
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("[useEscrowsMutations] Update failed:", error);
-        if (error.response) {
-          const message = error.response.data?.message || error.response.data?.error || JSON.stringify(error.response.data);
-          toast.error(`Update Error (${error.response.status}): ${message}`);
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "response" in error &&
+          typeof (error as any).response === "object"
+        ) {
+          const axiosError = error as {
+            response: { status: number; data?: any };
+          };
+          const message =
+            axiosError.response.data?.message ||
+            axiosError.response.data?.error ||
+            JSON.stringify(axiosError.response.data);
+          toast.error(`Update Error (${axiosError.response.status}): ${message}`);
           throw new Error(`API Error: ${message}`);
         }
         throw error;
