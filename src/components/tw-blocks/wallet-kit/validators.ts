@@ -5,7 +5,7 @@
  * @returns True if the wallet address is valid, false otherwise
  */
 export const isValidWallet = (wallet: string) => {
-  if (wallet.length !== 56 || wallet[0] !== "G") {
+  if (wallet.length !== 56 || (wallet[0] !== "G" && wallet[0] !== "C")) {
     return false;
   }
 

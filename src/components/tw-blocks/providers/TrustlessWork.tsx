@@ -22,6 +22,14 @@ export function TrustlessWorkProvider({
    */
   const apiKey = process.env.NEXT_PUBLIC_API_KEY || "";
 
+  React.useEffect(() => {
+    console.log("[TrustlessWork] Provider initialized:", {
+      baseURL: development,
+      hasApiKey: !!apiKey,
+      apiKeyPrefix: apiKey ? `${apiKey.substring(0, 5)}...` : "none"
+    });
+  }, [apiKey]);
+
   return (
     <TrustlessWorkConfig baseURL={development} apiKey={apiKey}>
       {children}

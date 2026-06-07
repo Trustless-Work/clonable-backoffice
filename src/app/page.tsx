@@ -11,13 +11,13 @@ import Image from "next/image";
 
 const EscrowsBySignerCardsNoSSR = dynamic(
   () =>
-    import(
-      "@/components/tw-blocks/escrows/escrows-by-signer/cards/EscrowsCards"
-    ).then((m) => m.EscrowsBySignerCards),
+    import("@/components/tw-blocks/escrows/escrows-by-signer/cards/EscrowsCards").then(
+      (m) => m.EscrowsBySignerCards,
+    ),
   {
     ssr: false,
     loading: () => null,
-  }
+  },
 );
 
 import Link from "next/link";
@@ -60,10 +60,12 @@ export default function Home() {
               <div className="flex items-center gap-4">
                 <Briefcase className="h-6 w-6 text-primary" />
                 <div>
-                  <h3 className="text-lg font-semibold">Service Provider Workspace</h3>
+                  <h3 className="text-lg font-semibold">
+                    Service Provider Workspace
+                  </h3>
                   <p className="text-sm text-muted-foreground">
-                    Click this card to enter the workspace, manage your escrows, and
-                    view your milestone progress bars.
+                    Click this card to enter the workspace, manage your escrows,
+                    and view your milestone progress bars.
                   </p>
                 </div>
               </div>
@@ -72,7 +74,7 @@ export default function Home() {
         </div>
 
         {/* subtle entry to the Pollar adapter demo (issue #28) */}
-        <div className="w-full max-w-lg">
+        <div className="w-full max-w-lg space-y-3">
           <Link href="/pollar" className="block">
             <div className="p-3 bg-muted/20 border border-border/40 rounded-md hover:bg-muted/40 transition-colors text-sm">
               <div className="flex items-center gap-3">
@@ -81,6 +83,22 @@ export default function Home() {
                   <span className="font-medium">Try Pollar mode</span>
                   <span className="text-muted-foreground ml-2">
                     — sign Trustless Work XDRs via Pollar (demo)
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/crossmint" className="block">
+            <div className="p-3 bg-[#20C997]/5 border border-[#20C997]/20 rounded-md hover:bg-[#20C997]/10 transition-colors text-sm">
+              <div className="flex items-center gap-3">
+                <Sparkles className="h-4 w-4 text-[#20C997]" />
+                <div className="flex-1">
+                  <span className="font-medium text-[#20C997]">
+                    Try Crossmint mode
+                  </span>
+                  <span className="text-muted-foreground ml-2">
+                    — sign and submit Trustless Work XDRs via Crossmint (demo)
                   </span>
                 </div>
               </div>

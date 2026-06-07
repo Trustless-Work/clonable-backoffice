@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   EscrowType,
   FundEscrowPayload,
@@ -27,6 +28,10 @@ import {
   useWithdrawRemainingFunds,
 } from "@trustless-work/escrow";
 import { signTransaction } from "../wallet-kit/wallet-kit";
+import { useWalletContext } from "@/components/tw-blocks/wallet-kit/WalletProvider";
+import { ExecutionMetadata, ExecutionResult } from "@/lib/executors/types";
+import { useOptionalTransactionExecutor } from "@/components/providers/ExecutorProvider";
+import { useWallet, StellarWallet } from "@crossmint/client-sdk-react-ui";
 
 /**
  * Use the mutations to interact with the escrows
@@ -52,6 +57,88 @@ export const useEscrowsMutations = () => {
   const { releaseFunds } = useReleaseFunds();
   const { resolveDispute } = useResolveDispute();
   const { withdrawRemainingFunds } = useWithdrawRemainingFunds();
+  const { wallet: crossmintWallet } = useWallet();
+  const { walletAddress } = useWalletContext();
+  const executorContext = useOptionalTransactionExecutor();
+
+  const executeTransaction = async (
+    unsignedTransaction: string,
+    metadata?: ExecutionMetadata,
+    address?: string,
+  ): Promise<ExecutionResult> => {
+    // Crossmint flow
+    if (executorContext?.mode === "crossmint") {
+      if (!crossmintWallet) {
+        throw new Error("Crossmint wallet not loaded");
+      }
+      if (!metadata?.contractId) {
+        throw new Error("Crossmint requires a contractId for transaction submission");
+      }
+
+      try {
+        const stellarWallet = StellarWallet.from(crossmintWallet);
+        const result = await stellarWallet.sendTransaction({
+          transaction: unsignedTransaction,
+          contractId: metadata.contractId,
+        });
+        return {
+          hash: result.hash,
+          status: "SUCCESS",
+          explorerLink: result.explorerLink,
+        };
+      } catch (crossmintError: unknown) {
+        const message = crossmintError instanceof Error ? crossmintError.message : "Unknown Crossmint error";
+        return {
+          hash: "",
+          status: "ERROR",
+          error: message,
+        };
+      }
+    }
+
+    // Wallet Kit flow (Fallback for other parts of the app, but not the Crossmint spike)
+    const signerAddress = address || walletAddress;
+    if (!signerAddress) {
+      throw new Error("Wallet not connected");
+    }
+
+    try {
+      const signedTxXdr = await signTransaction({
+        unsignedTransaction,
+        address: signerAddress,
+      });
+
+      if (!signedTxXdr) {
+        throw new Error("Signed transaction is missing.");
+      }
+
+      const response = await sendTransaction(signedTxXdr);
+      const hash = (response as { hash?: string }).hash || "";
+
+      if (response.status === "SUCCESS") {
+        return {
+          hash,
+          status: "SUCCESS",
+          explorerLink: hash
+            ? `https://stellar.expert/explorer/testnet/tx/${hash}`
+            : undefined,
+        };
+      }
+
+      return {
+        hash,
+        status: "ERROR",
+        error: "Transaction failed",
+      };
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      return {
+        hash: "",
+        status: "ERROR",
+        error: message,
+      };
+    }
+  };
 
   /**
    * Deploy Escrow
@@ -68,30 +155,66 @@ export const useEscrowsMutations = () => {
       type: EscrowType;
       address: string;
     }) => {
-      const { unsignedTransaction } = await deployEscrow(payload, type);
-
-      if (!unsignedTransaction) {
-        throw new Error(
-          "Unsigned transaction is missing from deployEscrow response."
-        );
-      }
-
-      const signedTxXdr = await signTransaction({
-        unsignedTransaction,
-        address,
+      console.log("[useEscrowsMutations] Deploying escrow:", { 
+        type, 
+        payload: JSON.stringify(payload, null, 2) 
       });
+      
+      try {
+        const deployResponse = (await deployEscrow(payload, type)) as unknown as {
+          unsignedTransaction?: string;
+          contractId: string;
+          escrow: unknown;
+          message: string;
+          status: string;
+        };
+        const { unsignedTransaction, contractId } = deployResponse;
 
-      if (!signedTxXdr) {
-        throw new Error("Signed transaction is missing.");
+        console.log("[useEscrowsMutations] Deploy response received:", { 
+          contractId, 
+          hasUnsignedTx: !!unsignedTransaction 
+        });
+
+        if (!unsignedTransaction) {
+          throw new Error(
+            "Unsigned transaction is missing from deployEscrow response.",
+          );
+        }
+
+        const executionResult = await executeTransaction(
+          unsignedTransaction,
+          { contractId },
+          address,
+        );
+
+        if (executionResult.status !== "SUCCESS") {
+          throw new Error(executionResult.error || "Transaction failed to send");
+        }
+
+        return {
+          ...deployResponse,
+          payload,
+          type,
+          contractId,
+          hash: executionResult.hash,
+          explorerLink: executionResult.explorerLink,
+          transactionStatus: executionResult.status,
+        };
+      } catch (error: any) {
+        console.error("[useEscrowsMutations] Full error object:", error);
+        if (error.response) {
+          console.error("[useEscrowsMutations] Deploy failed with status", error.response.status, ":", JSON.stringify(error.response.data, null, 2));
+          const message = error.response.data?.message || error.response.data?.error || JSON.stringify(error.response.data) || "Deploy failed";
+          
+          // Show a descriptive toast for API errors
+          toast.error(`API Error (${error.response.status}): ${message}`, {
+            duration: 5000,
+          });
+          
+          throw new Error(`API Error: ${message}`);
+        }
+        throw error;
       }
-
-      const response = await sendTransaction(signedTxXdr);
-
-      if (response.status !== "SUCCESS") {
-        throw new Error("Transaction failed to send");
-      }
-
-      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["escrows"] });
@@ -116,30 +239,51 @@ export const useEscrowsMutations = () => {
       type: EscrowType;
       address: string;
     }) => {
-      const { unsignedTransaction } = await updateEscrow(payload, type);
+      console.log("[useEscrowsMutations] Updating escrow:", { type, payload });
+      
+      try {
+        const updateResponse = (await updateEscrow(payload, type)) as {
+          unsignedTransaction?: string;
+          contractId: string;
+          message: string;
+          status: string;
+        };
+        const { unsignedTransaction, contractId } = updateResponse;
 
-      if (!unsignedTransaction) {
-        throw new Error(
-          "Unsigned transaction is missing from updateEscrow response."
+        if (!unsignedTransaction) {
+          throw new Error(
+            "Unsigned transaction is missing from updateEscrow response.",
+          );
+        }
+
+        const executionResult = await executeTransaction(
+          unsignedTransaction,
+          { contractId },
+          address,
         );
+
+        if (executionResult.status !== "SUCCESS") {
+          throw new Error(executionResult.error || "Transaction failed to send");
+        }
+
+        return {
+          ...updateResponse,
+          payload,
+          type,
+          contractId,
+          hash: executionResult.hash,
+          explorerLink: executionResult.explorerLink,
+          transactionStatus: executionResult.status,
+        };
+      } catch (error: any) {
+        console.error("[useEscrowsMutations] Update failed:", error);
+        if (error.response) {
+          const message = error.response.data?.message || error.response.data?.error || JSON.stringify(error.response.data);
+          toast.error(`Update Error (${error.response.status}): ${message}`);
+          throw new Error(`API Error: ${message}`);
+        }
+        throw error;
       }
-
-      const signedTxXdr = await signTransaction({
-        unsignedTransaction,
-        address,
-      });
-
-      if (!signedTxXdr) {
-        throw new Error("Signed transaction is missing.");
-      }
-
-      const response = await sendTransaction(signedTxXdr);
-
-      if (response.status !== "SUCCESS") {
-        throw new Error("Transaction failed to send");
-      }
-
-      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["escrows"] });
@@ -162,33 +306,25 @@ export const useEscrowsMutations = () => {
       type: EscrowType;
       address: string;
     }) => {
-      // Step 1: Get unsigned transaction
       const { unsignedTransaction } = await fundEscrow(payload, type);
 
       if (!unsignedTransaction) {
         throw new Error(
-          "Unsigned transaction is missing from fundEscrow response."
+          "Unsigned transaction is missing from fundEscrow response.",
         );
       }
 
-      // Step 2: Sign transaction
-      const signedTxXdr = await signTransaction({
+      const executionResult = await executeTransaction(
         unsignedTransaction,
+        { contractId: payload.contractId },
         address,
-      });
+      );
 
-      if (!signedTxXdr) {
-        throw new Error("Signed transaction is missing.");
+      if (executionResult.status !== "SUCCESS") {
+        throw new Error(executionResult.error || "Transaction failed to send");
       }
 
-      // Step 3: Send transaction
-      const response = await sendTransaction(signedTxXdr);
-
-      if (response.status !== "SUCCESS") {
-        throw new Error("Transaction failed to send");
-      }
-
-      return response;
+      return executionResult;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["escrows"] });
@@ -215,26 +351,21 @@ export const useEscrowsMutations = () => {
 
       if (!unsignedTransaction) {
         throw new Error(
-          "Unsigned transaction is missing from approveMilestone response."
+          "Unsigned transaction is missing from approveMilestone response.",
         );
       }
 
-      const signedTxXdr = await signTransaction({
+      const executionResult = await executeTransaction(
         unsignedTransaction,
+        { contractId: payload.contractId },
         address,
-      });
+      );
 
-      if (!signedTxXdr) {
-        throw new Error("Signed transaction is missing.");
+      if (executionResult.status !== "SUCCESS") {
+        throw new Error(executionResult.error || "Transaction failed to send");
       }
 
-      const response = await sendTransaction(signedTxXdr);
-
-      if (response.status !== "SUCCESS") {
-        throw new Error("Transaction failed to send");
-      }
-
-      return response;
+      return executionResult;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["escrows"] });
@@ -259,31 +390,26 @@ export const useEscrowsMutations = () => {
     }) => {
       const { unsignedTransaction } = await changeMilestoneStatus(
         payload,
-        type
+        type,
       );
 
       if (!unsignedTransaction) {
         throw new Error(
-          "Unsigned transaction is missing from changeMilestoneStatus response."
+          "Unsigned transaction is missing from changeMilestoneStatus response.",
         );
       }
 
-      const signedTxXdr = await signTransaction({
+      const executionResult = await executeTransaction(
         unsignedTransaction,
+        { contractId: payload.contractId },
         address,
-      });
+      );
 
-      if (!signedTxXdr) {
-        throw new Error("Signed transaction is missing.");
+      if (executionResult.status !== "SUCCESS") {
+        throw new Error(executionResult.error || "Transaction failed to send");
       }
 
-      const response = await sendTransaction(signedTxXdr);
-
-      if (response.status !== "SUCCESS") {
-        throw new Error("Transaction failed to send");
-      }
-
-      return response;
+      return executionResult;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["escrows"] });
@@ -312,26 +438,21 @@ export const useEscrowsMutations = () => {
 
       if (!unsignedTransaction) {
         throw new Error(
-          "Unsigned transaction is missing from startDispute response."
+          "Unsigned transaction is missing from startDispute response.",
         );
       }
 
-      const signedTxXdr = await signTransaction({
+      const executionResult = await executeTransaction(
         unsignedTransaction,
+        { contractId: payload.contractId },
         address,
-      });
+      );
 
-      if (!signedTxXdr) {
-        throw new Error("Signed transaction is missing.");
+      if (executionResult.status !== "SUCCESS") {
+        throw new Error(executionResult.error || "Transaction failed to send");
       }
 
-      const response = await sendTransaction(signedTxXdr);
-
-      if (response.status !== "SUCCESS") {
-        throw new Error("Transaction failed to send");
-      }
-
-      return response;
+      return executionResult;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["escrows"] });
@@ -360,26 +481,21 @@ export const useEscrowsMutations = () => {
 
       if (!unsignedTransaction) {
         throw new Error(
-          "Unsigned transaction is missing from releaseFunds response."
+          "Unsigned transaction is missing from releaseFunds response.",
         );
       }
 
-      const signedTxXdr = await signTransaction({
+      const executionResult = await executeTransaction(
         unsignedTransaction,
+        { contractId: payload.contractId },
         address,
-      });
+      );
 
-      if (!signedTxXdr) {
-        throw new Error("Signed transaction is missing.");
+      if (executionResult.status !== "SUCCESS") {
+        throw new Error(executionResult.error || "Transaction failed to send");
       }
 
-      const response = await sendTransaction(signedTxXdr);
-
-      if (response.status !== "SUCCESS") {
-        throw new Error("Transaction failed to send");
-      }
-
-      return response;
+      return executionResult;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["escrows"] });
@@ -408,26 +524,21 @@ export const useEscrowsMutations = () => {
 
       if (!unsignedTransaction) {
         throw new Error(
-          "Unsigned transaction is missing from resolveDispute response."
+          "Unsigned transaction is missing from resolveDispute response.",
         );
       }
 
-      const signedTxXdr = await signTransaction({
+      const executionResult = await executeTransaction(
         unsignedTransaction,
+        { contractId: payload.contractId },
         address,
-      });
+      );
 
-      if (!signedTxXdr) {
-        throw new Error("Signed transaction is missing.");
+      if (executionResult.status !== "SUCCESS") {
+        throw new Error(executionResult.error || "Transaction failed to send");
       }
 
-      const response = await sendTransaction(signedTxXdr);
-
-      if (response.status !== "SUCCESS") {
-        throw new Error("Transaction failed to send");
-      }
-
-      return response;
+      return executionResult;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["escrows"] });
@@ -452,26 +563,21 @@ export const useEscrowsMutations = () => {
 
       if (!unsignedTransaction) {
         throw new Error(
-          "Unsigned transaction is missing from withdrawRemainingFunds response."
+          "Unsigned transaction is missing from withdrawRemainingFunds response.",
         );
       }
 
-      const signedTxXdr = await signTransaction({
+      const executionResult = await executeTransaction(
         unsignedTransaction,
+        { contractId: payload.contractId },
         address,
-      });
+      );
 
-      if (!signedTxXdr) {
-        throw new Error("Signed transaction is missing.");
+      if (executionResult.status !== "SUCCESS") {
+        throw new Error(executionResult.error || "Transaction failed to send");
       }
 
-      const response = await sendTransaction(signedTxXdr);
-
-      if (response.status !== "SUCCESS") {
-        throw new Error("Transaction failed to send");
-      }
-
-      return response;
+      return executionResult;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["escrows"] });

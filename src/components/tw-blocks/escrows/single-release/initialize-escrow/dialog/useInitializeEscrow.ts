@@ -138,12 +138,11 @@ export function useInitializeEscrow({ onSuccess }: { onSuccess?: () => void } = 
        * @param type - The type of the escrow
        * @param address - The address of the escrow
        */
-      const response: InitializeSingleReleaseEscrowResponse =
-        (await deployEscrow.mutateAsync({
-          payload: finalPayload,
-          type: "single-release",
-          address: walletAddress || "",
-        })) as InitializeSingleReleaseEscrowResponse;
+      const response = (await deployEscrow.mutateAsync({
+        payload: finalPayload,
+        type: "single-release",
+        address: walletAddress || "",
+      })) as unknown as InitializeSingleReleaseEscrowResponse;
 
       toast.success("Escrow initialized successfully");
 
