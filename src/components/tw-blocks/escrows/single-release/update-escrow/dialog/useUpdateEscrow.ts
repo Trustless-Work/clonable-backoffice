@@ -201,7 +201,7 @@ export function useUpdateEscrow({
         payload: finalPayload,
         type: "single-release",
         address: walletAddress || "",
-      })) as UpdateSingleReleaseEscrowResponse;
+      })) as unknown as UpdateSingleReleaseEscrowResponse;
 
       if (!selectedEscrow) return;
 

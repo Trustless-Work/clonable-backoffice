@@ -107,9 +107,33 @@ Make sure to set up the following environment variable in your `.env` file:
 # TRUSTLESS WORK -> See API KEY Video
 NEXT_PUBLIC_API_KEY=""
 
+# CROSSMINT (Required for /crossmint route)
+NEXT_PUBLIC_CROSSMINT_API_KEY="your_client_key_here"
+
 ```
 
-The wallets are required to interact with the platform.\
+---
+
+## Crossmint Integration Spike (Issue #31)
+
+This project contains a dedicated integration spike located at `/crossmint`. It explores using Crossmint's embedded wallet infrastructure to manage the Trustless Work escrow lifecycle.
+
+### Key Finding: The "C vs G" Address Blocker
+
+The spike successfully bridged the Crossmint and Trustless Work SDKs, but identified a critical architectural mismatch:
+
+- **Crossmint** exclusively provides **Soroban Smart Wallets** on Stellar (addresses starting with `C...`).
+- **Trustless Work API** currently expects **Traditional Accounts** (addresses starting with `G...`).
+- **Result**: Attempting to deploy an escrow returns a `400 Bad Request` with an `invalid version byte` error.
+
+For full technical details, compatibility notes, and next steps, see the **[Crossmint Findings Report](./docs/CROSSMINT_FINDINGS.md)**.
+
+### Accessing the Demo
+
+1. Set `NEXT_PUBLIC_CROSSMINT_API_KEY` in your `.env`.
+2. Navigate to `/crossmint`.
+3. Log in with email/social.
+4. Attempt an escrow deployment to see the terminal state and error logs.
 
 ---
 
