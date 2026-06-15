@@ -31,7 +31,7 @@ import { signTransaction } from "../wallet-kit/wallet-kit";
 import { useWalletContext } from "@/components/tw-blocks/wallet-kit/WalletProvider";
 import { ExecutionMetadata, ExecutionResult } from "@/lib/executors/types";
 import { useOptionalTransactionExecutor } from "@/components/providers/ExecutorProvider";
-import { useWallet, StellarWallet } from "@crossmint/client-sdk-react-ui";
+
 
 /**
  * Use the mutations to interact with the escrows
@@ -57,7 +57,6 @@ export const useEscrowsMutations = () => {
   const { releaseFunds } = useReleaseFunds();
   const { resolveDispute } = useResolveDispute();
   const { withdrawRemainingFunds } = useWithdrawRemainingFunds();
-  const { wallet: crossmintWallet } = useWallet();
   const { walletAddress } = useWalletContext();
   const executorContext = useOptionalTransactionExecutor();
 
@@ -66,37 +65,12 @@ export const useEscrowsMutations = () => {
     metadata?: ExecutionMetadata,
     address?: string,
   ): Promise<ExecutionResult> => {
-    // Crossmint flow
-    if (executorContext?.mode === "crossmint") {
-      if (!crossmintWallet) {
-        throw new Error("Crossmint wallet not loaded");
-      }
-      if (!metadata?.contractId) {
-        throw new Error("Crossmint requires a contractId for transaction submission");
-      }
-
-      try {
-        const stellarWallet = StellarWallet.from(crossmintWallet);
-        const result = await stellarWallet.sendTransaction({
-          transaction: unsignedTransaction,
-          contractId: metadata.contractId,
-        });
-        return {
-          hash: result.hash,
-          status: "SUCCESS",
-          explorerLink: result.explorerLink,
-        };
-      } catch (crossmintError: unknown) {
-        const message = crossmintError instanceof Error ? crossmintError.message : "Unknown Crossmint error";
-        return {
-          hash: "",
-          status: "ERROR",
-          error: message,
-        };
-      }
+    // Use the executor from context if available (handles both crossmint and wallet-kit modes)
+    if (executorContext) {
+      return executorContext.executor.execute(unsignedTransaction, metadata);
     }
 
-    // Wallet Kit flow (Fallback for other parts of the app, but not the Crossmint spike)
+    // Fallback: direct Wallet Kit flow (for routes without ExecutorProvider)
     const signerAddress = address || walletAddress;
     if (!signerAddress) {
       throw new Error("Wallet not connected");
@@ -155,10 +129,9 @@ export const useEscrowsMutations = () => {
       type: EscrowType;
       address: string;
     }) => {
-      console.log("[useEscrowsMutations] Deploying escrow:", { 
-        type, 
-        payload: JSON.stringify(payload, null, 2) 
-      });
+      if (process.env.NODE_ENV === "development") {
+        console.log("[useEscrowsMutations] Deploying escrow:", { type, payload });
+      }
       
       try {
         const deployResponse = (await deployEscrow(payload, type)) as unknown as {
@@ -170,10 +143,9 @@ export const useEscrowsMutations = () => {
         };
         const { unsignedTransaction, contractId } = deployResponse;
 
-        console.log("[useEscrowsMutations] Deploy response received:", { 
-          contractId, 
-          hasUnsignedTx: !!unsignedTransaction 
-        });
+        if (process.env.NODE_ENV === "development") {
+          console.log("[useEscrowsMutations] Deploy response received:", { contractId, hasUnsignedTx: !!unsignedTransaction });
+        }
 
         if (!unsignedTransaction) {
           throw new Error(
@@ -256,7 +228,9 @@ export const useEscrowsMutations = () => {
       type: EscrowType;
       address: string;
     }) => {
-      console.log("[useEscrowsMutations] Updating escrow:", { type, payload });
+      if (process.env.NODE_ENV === "development") {
+        console.log("[useEscrowsMutations] Updating escrow:", { type, payload });
+      }
       
       try {
         const updateResponse = (await updateEscrow(payload, type)) as {

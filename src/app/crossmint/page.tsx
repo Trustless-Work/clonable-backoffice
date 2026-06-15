@@ -56,13 +56,6 @@ const USDC_TESTNET_TRUSTLINE = {
 const CROSSMINT_API_KEY = process.env.NEXT_PUBLIC_CROSSMINT_API_KEY || "";
 const HAS_VALID_CROSSMINT_KEY = CROSSMINT_API_KEY.startsWith("ck_");
 
-interface CrossmintWalletDebug {
-  address: string;
-  publicKey?: string;
-  owner?: string;
-  signer?: unknown;
-}
-
 function FieldLabel({
   htmlFor,
   children,
@@ -112,22 +105,12 @@ function CrossmintDemoPageContent() {
 
   const activeWalletAddress = crossmintWallet?.address;
 
-  // Debug logging for wallet information
+  // Set the executor to crossmint mode and log wallet info in development
   React.useEffect(() => {
-    if (crossmintStatus === "loaded" && crossmintWallet) {
-      const debugWallet = crossmintWallet as unknown as CrossmintWalletDebug;
+    if (process.env.NODE_ENV === "development" && crossmintStatus === "loaded" && crossmintWallet) {
       console.log("[Crossmint] Wallet Loaded:", {
-        address: debugWallet.address,
-        publicKey: debugWallet.publicKey,
-        owner: debugWallet.owner,
-        signer: debugWallet.signer,
-        fullWallet: crossmintWallet,
-        status: crossmintStatus,
-        config: {
-          chain: "stellar",
-          type: "mpc",
-          recovery: { type: "email" },
-        },
+        address: crossmintWallet.address,
+        chain: "stellar",
       });
     }
     setMode("crossmint");

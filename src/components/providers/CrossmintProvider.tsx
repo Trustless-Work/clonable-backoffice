@@ -2,16 +2,25 @@
 
 import * as React from "react";
 import { useWallet } from "@crossmint/client-sdk-react-ui";
-import { useSendTransaction } from "@trustless-work/escrow";
-import { 
-  CrossmintContextType, 
-  RawEscrowAdapter, 
-  DeployEscrowAdapterParams, 
-  CrossmintEscrowAdapter 
+import {
+  CrossmintContextType,
+  RawEscrowAdapter,
+  CrossmintEscrowAdapter,
+  DeployEscrowAdapterParams,
 } from "@/lib/crossmint/escrowAdapter.types";
 
 const CrossmintContext = React.createContext<CrossmintContextType | undefined>(undefined);
 
+/**
+ * CrossmintProvider wraps the Crossmint wallet SDK and provides a context-based
+ * escrow adapter. This is a secondary integration path — the primary escrow flow
+ * uses useEscrowsMutations which delegates to the TransactionExecutor from
+ * ExecutorProvider (see src/lib/executors/useExecutors.ts).
+ *
+ * This provider is included in the TrustlessWorkCrossmintBridge for the /crossmint
+ * demo route, but the actual transaction execution is handled by ExecutorProvider
+ * with mode="crossmint".
+ */
 export function CrossmintProvider({
   children,
   adapters,
@@ -21,36 +30,21 @@ export function CrossmintProvider({
 }) {
   const { wallet } = useWallet();
   const walletAddress = wallet?.address;
-  const { sendTransaction } = useSendTransaction();
   const [tx, setTx] = React.useState<CrossmintContextType["tx"]>({ step: "idle" });
 
   const wrappedEscrowAdapter = React.useMemo<CrossmintEscrowAdapter | undefined>(() => {
     if (!adapters.escrow) return undefined;
 
     return {
-      deployEscrow: async (params: DeployEscrowAdapterParams) => {
+      deployEscrow: async (_params: DeployEscrowAdapterParams) => {
         if (!walletAddress) throw new Error("Wallet not connected");
 
-        setTx({ step: "building" });
-        try {
-          // 1. Get unsigned transaction from the bridge (Trustless Work SDK)
-          const { unsignedTransaction } = await adapters.escrow!.deployEscrow(params);
-          setTx({ step: "built" });
-
-          // 2. Crossmint handles signing and submission via its own flow
-          // Note: In the current implementation, we might want to use the executor 
-          // but if we are in this adapter, we are explicitly doing Crossmint.
-          setTx({ step: "signing" });
-          
-          // For now, this adapter seems to be a placeholder or used in specific contexts.
-          // The main flow uses useEscrowsMutations which uses the Executor.
-          
-          throw new Error("CrossmintProvider adapter not fully implemented. Use the Executor instead.");
-        } catch (error: unknown) {
-          const message = error instanceof Error ? error.message : "Unknown error";
-          setTx({ step: "error", details: message });
-          throw error;
-        }
+        setTx({ step: "error", details: "Direct adapter path not implemented — use ExecutorProvider with mode='crossmint' instead" });
+        throw new Error(
+          "CrossmintProvider adapter path is not implemented. " +
+          "Use ExecutorProvider with mode='crossmint' for transaction execution. " +
+          "See src/lib/executors/useExecutors.ts for the Crossmint executor."
+        );
       },
     };
   }, [adapters.escrow, walletAddress]);
