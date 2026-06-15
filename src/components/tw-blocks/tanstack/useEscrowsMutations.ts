@@ -43,9 +43,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-function getAxiosErrorMessage(data: unknown): string {
+function getAxiosErrorMessage(data: unknown, fallback: string): string {
   if (!isRecord(data)) {
-    return JSON.stringify(data) || "Deploy failed";
+    return fallback;
   }
 
   const message = data.message;
@@ -54,8 +54,7 @@ function getAxiosErrorMessage(data: unknown): string {
   return (
     (typeof message === "string" && message) ||
     (typeof error === "string" && error) ||
-    JSON.stringify(data) ||
-    "Deploy failed"
+    fallback
   );
 }
 
@@ -174,11 +173,17 @@ export const useEscrowsMutations = () => {
       address: string;
     }) => {
       if (process.env.NODE_ENV === "development") {
-        console.log("[useEscrowsMutations] Deploying escrow:", { type, payload });
+        console.log("[useEscrowsMutations] Deploying escrow:", {
+          type,
+          payload,
+        });
       }
 
       try {
-        const deployResponse = (await deployEscrow(payload, type)) as unknown as {
+        const deployResponse = (await deployEscrow(
+          payload,
+          type,
+        )) as unknown as {
           unsignedTransaction?: string;
           contractId: string;
           escrow: unknown;
@@ -188,7 +193,10 @@ export const useEscrowsMutations = () => {
         const { unsignedTransaction, contractId } = deployResponse;
 
         if (process.env.NODE_ENV === "development") {
-          console.log("[useEscrowsMutations] Deploy response received:", { contractId, hasUnsignedTx: !!unsignedTransaction });
+          console.log("[useEscrowsMutations] Deploy response received:", {
+            contractId,
+            hasUnsignedTx: !!unsignedTransaction,
+          });
         }
 
         if (!unsignedTransaction) {
@@ -204,7 +212,9 @@ export const useEscrowsMutations = () => {
         );
 
         if (executionResult.status !== "SUCCESS") {
-          throw new Error(executionResult.error || "Transaction failed to send");
+          throw new Error(
+            executionResult.error || "Transaction failed to send",
+          );
         }
 
         return {
@@ -219,7 +229,10 @@ export const useEscrowsMutations = () => {
       } catch (error: unknown) {
         console.error("[useEscrowsMutations] Full error object:", error);
         if (isAxiosLikeError(error)) {
-          const message = getAxiosErrorMessage(error.response.data);
+          const message = getAxiosErrorMessage(
+            error.response.data,
+            "Escrow deploy failed",
+          );
 
           // Show a descriptive toast for API errors
           toast.error(`API Error (${error.response.status}): ${message}`, {
@@ -255,7 +268,10 @@ export const useEscrowsMutations = () => {
       address: string;
     }) => {
       if (process.env.NODE_ENV === "development") {
-        console.log("[useEscrowsMutations] Updating escrow:", { type, payload });
+        console.log("[useEscrowsMutations] Updating escrow:", {
+          type,
+          payload,
+        });
       }
 
       try {
@@ -280,7 +296,9 @@ export const useEscrowsMutations = () => {
         );
 
         if (executionResult.status !== "SUCCESS") {
-          throw new Error(executionResult.error || "Transaction failed to send");
+          throw new Error(
+            executionResult.error || "Transaction failed to send",
+          );
         }
 
         return {
@@ -295,7 +313,10 @@ export const useEscrowsMutations = () => {
       } catch (error: unknown) {
         console.error("[useEscrowsMutations] Update failed:", error);
         if (isAxiosLikeError(error)) {
-          const message = getAxiosErrorMessage(error.response.data);
+          const message = getAxiosErrorMessage(
+            error.response.data,
+            "Escrow update failed",
+          );
           toast.error(`Update Error (${error.response.status}): ${message}`);
           throw new Error(`API Error: ${message}`);
         }
