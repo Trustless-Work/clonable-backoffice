@@ -32,6 +32,50 @@ import { useWalletContext } from "@/components/tw-blocks/wallet-kit/WalletProvid
 import { ExecutionMetadata, ExecutionResult } from "@/lib/executors/types";
 import { useOptionalTransactionExecutor } from "@/components/providers/ExecutorProvider";
 
+type AxiosLikeError = {
+  response: {
+    status: number;
+    data?: unknown;
+  };
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function getAxiosErrorMessage(data: unknown): string {
+  if (!isRecord(data)) {
+    return JSON.stringify(data) || "Deploy failed";
+  }
+
+  const message = data.message;
+  const error = data.error;
+
+  return (
+    (typeof message === "string" && message) ||
+    (typeof error === "string" && error) ||
+    JSON.stringify(data) ||
+    "Deploy failed"
+  );
+}
+
+function isAxiosLikeError(error: unknown): error is AxiosLikeError {
+  if (typeof error !== "object" || error === null || !("response" in error)) {
+    return false;
+  }
+
+  const response = (error as { response: unknown }).response;
+
+  if (
+    typeof response !== "object" ||
+    response === null ||
+    !("status" in response)
+  ) {
+    return false;
+  }
+
+  return typeof (response as { status: unknown }).status === "number";
+}
 
 /**
  * Use the mutations to interact with the escrows
@@ -132,7 +176,7 @@ export const useEscrowsMutations = () => {
       if (process.env.NODE_ENV === "development") {
         console.log("[useEscrowsMutations] Deploying escrow:", { type, payload });
       }
-      
+
       try {
         const deployResponse = (await deployEscrow(payload, type)) as unknown as {
           unsignedTransaction?: string;
@@ -174,29 +218,11 @@ export const useEscrowsMutations = () => {
         };
       } catch (error: unknown) {
         console.error("[useEscrowsMutations] Full error object:", error);
-        if (
-          typeof error === "object" &&
-          error !== null &&
-          "response" in error &&
-          typeof (error as any).response === "object"
-        ) {
-          const axiosError = error as {
-            response: { status: number; data?: any };
-          };
-          console.error(
-            "[useEscrowsMutations] Deploy failed with status",
-            axiosError.response.status,
-            ":",
-            JSON.stringify(axiosError.response.data, null, 2),
-          );
-          const message =
-            axiosError.response.data?.message ||
-            axiosError.response.data?.error ||
-            JSON.stringify(axiosError.response.data) ||
-            "Deploy failed";
+        if (isAxiosLikeError(error)) {
+          const message = getAxiosErrorMessage(error.response.data);
 
           // Show a descriptive toast for API errors
-          toast.error(`API Error (${axiosError.response.status}): ${message}`, {
+          toast.error(`API Error (${error.response.status}): ${message}`, {
             duration: 5000,
           });
 
@@ -231,7 +257,7 @@ export const useEscrowsMutations = () => {
       if (process.env.NODE_ENV === "development") {
         console.log("[useEscrowsMutations] Updating escrow:", { type, payload });
       }
-      
+
       try {
         const updateResponse = (await updateEscrow(payload, type)) as {
           unsignedTransaction?: string;
@@ -268,20 +294,9 @@ export const useEscrowsMutations = () => {
         };
       } catch (error: unknown) {
         console.error("[useEscrowsMutations] Update failed:", error);
-        if (
-          typeof error === "object" &&
-          error !== null &&
-          "response" in error &&
-          typeof (error as any).response === "object"
-        ) {
-          const axiosError = error as {
-            response: { status: number; data?: any };
-          };
-          const message =
-            axiosError.response.data?.message ||
-            axiosError.response.data?.error ||
-            JSON.stringify(axiosError.response.data);
-          toast.error(`Update Error (${axiosError.response.status}): ${message}`);
+        if (isAxiosLikeError(error)) {
+          const message = getAxiosErrorMessage(error.response.data);
+          toast.error(`Update Error (${error.response.status}): ${message}`);
           throw new Error(`API Error: ${message}`);
         }
         throw error;
